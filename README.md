@@ -37,7 +37,7 @@ frontend/
 Installation & Setup
 1. Clone the repository
 
-git clone https://github.com/RamaniYagnik/iTechnotiontask.git
+git clone https://github.com/RamaniYagnik/frontend.git
 cd frontend
 
 2. Install dependencies
