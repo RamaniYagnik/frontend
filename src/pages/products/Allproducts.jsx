@@ -1,12 +1,11 @@
-// src/pages/products/AllProducts.jsx
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/Authcontext";
 import { toast } from "react-toastify";
 import api from "../../api/Api";
 import ProductModal from "../products/Productmodal";
-import { formatINR } from "../../util/Priceformatter"; // optional formatter
+import { formatINR } from "../../util/Priceformatter";
 
-const AllProducts = () => {
+const AllProducts = ({ selectedCategory }) => {
   const { auth, categories, products: contextProducts, fetchProducts } =
     useContext(AuthContext);
 
@@ -17,20 +16,24 @@ const AllProducts = () => {
   const role = auth?.userInfo?.role;
   const userId = auth?.userInfo?.id;
 
-  // Load products depending on role
+  // Update products whenever context or selectedCategory changes
   useEffect(() => {
     if (!contextProducts) return;
 
-    if (role === "admin") {
-      setProducts(contextProducts.filter((p) => !p.is_deleted));
-    } else if (role === "sub-admin") {
-      setProducts(
-        contextProducts.filter(
-          (p) => p.created_by === userId && !p.is_deleted
-        )
+    let filtered = contextProducts.filter((p) => !p.is_deleted);
+
+    if (role === "sub-admin") {
+      filtered = filtered.filter((p) => p.created_by === userId);
+    }
+
+    if (selectedCategory) {
+      filtered = filtered.filter(
+        (p) => p.categoryModel?.categories_name === selectedCategory
       );
     }
-  }, [contextProducts, role, userId]);
+
+    setProducts(filtered);
+  }, [contextProducts, role, userId, selectedCategory]);
 
   const handleEdit = (product) => {
     if (role === "sub-admin" && product.created_by !== userId) {
@@ -46,7 +49,6 @@ const AllProducts = () => {
       toast.error("You can only delete your own products");
       return;
     }
-
     if (!window.confirm("Are you sure you want to delete this product?")) return;
 
     try {

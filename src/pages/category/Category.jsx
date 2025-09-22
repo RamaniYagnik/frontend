@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import CategoryModal from "../category/Categorymodal";
 import { FcPrevious, FcNext } from "react-icons/fc";
 import api from "../../api/Api";
-import Searchbar from "../../component/searchbar/Searchbar"; // adjust path
+import Searchbar from "../../component/searchbar/Searchbar"; 
 import AllProducts from "../products/Allproducts";
 
 const Category = () => {
@@ -17,6 +17,7 @@ const Category = () => {
   const [formData, setFormData] = useState({ name: "", image: "" });
   const [searchTerm, setSearchTerm] = useState("");
   const [visibleCount, setVisibleCount] = useState(4);
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   // Filter categories
   const filteredCategories = categories.filter((cat) =>
@@ -27,11 +28,10 @@ const Category = () => {
   useEffect(() => {
     const updateVisibleCount = () => {
       const width = window.innerWidth;
-      if (width >= 1024) setVisibleCount(4); // lg and above
-      else if (width >= 768) setVisibleCount(3); // md
-      else setVisibleCount(1); // sm and below
+      if (width >= 1024) setVisibleCount(4);
+      else if (width >= 768) setVisibleCount(3);
+      else setVisibleCount(1);
     };
-
     updateVisibleCount();
     window.addEventListener("resize", updateVisibleCount);
     return () => window.removeEventListener("resize", updateVisibleCount);
@@ -90,6 +90,7 @@ const Category = () => {
       });
       toast.success("Category deleted successfully");
       fetchCategories();
+      setSelectedCategory(""); // reset filter if deleted category was selected
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to delete category");
     }
@@ -146,14 +147,22 @@ const Category = () => {
           {visibleCategories.map((cat) => (
             <div
               key={cat.id}
-              className="border p-4 rounded shadow hover:shadow-md transition w-full"
+              className={`border p-4 rounded shadow hover:shadow-md transition w-full cursor-pointer ${
+                selectedCategory === cat.categories_name
+                  ? "border-blue-500"
+                  : ""
+              }`}
             >
               <img
                 src={`${import.meta.env.VITE_BACKEND_URL}${cat.categories_image}`}
                 alt={cat.categories_name}
                 className="w-full h-32 object-contain mb-2 rounded transform transition-transform duration-300 hover:scale-105"
+                onClick={() => setSelectedCategory(cat.categories_name)}
               />
-              <p className="font-medium text-center mb-1">
+              <p
+                className="font-medium text-center mb-1"
+                onClick={() => setSelectedCategory(cat.categories_name)}
+              >
                 {cat.categories_name}
               </p>
               <p className="text-sm text-gray-600 text-center mb-2">
@@ -185,10 +194,18 @@ const Category = () => {
         </button>
       </div>
 
-      {/* Admin Products */}
-      <div>
-        <AllProducts />
-      </div>
+      {/* Clear category filter */}
+      {selectedCategory && (
+        <button
+          className="mb-4 px-4 py-1 bg-gray-300 rounded"
+          onClick={() => setSelectedCategory("")}
+        >
+          Show All Products
+        </button>
+      )}
+
+      {/* Products */}
+      <AllProducts selectedCategory={selectedCategory} />
 
       {/* Category Modal */}
       <CategoryModal
